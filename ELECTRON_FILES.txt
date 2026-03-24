@@ -1,0 +1,107 @@
+Electron App Files Reference
+
+This folder now contains the complete Electron application structure:
+
+FILES CREATED:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ package.json
+  - Node project configuration
+  - npm scripts for dev/build
+  - Electron-builder config for Windows installer
+  - Dependencies (electron, electron-builder)
+
+✓ main.js
+  - Electron main process
+  - Creates window, handles lifecycle
+  - Application menu
+  - IPC handlers (expand for custom features)
+
+✓ preload.js
+  - Security layer between main & renderer
+  - Exposes safe APIs to HTML
+  - Currently minimal (can add more as needed)
+
+✓ index.html
+  - Your complete web application
+  - Works exactly like the original HTML
+  - Locally served (no external server needed for UI)
+  - localStorage works for tokens/settings
+
+✓ setup.bat (Windows)
+  - Quick setup script
+  - Installs dependencies automatically
+  - Windows users: double-click to run
+
+✓ setup.sh (macOS/Linux)
+  - Setup script for Unix systems
+  - Run: bash setup.sh
+
+✓ README_ELECTRON.md
+  - Complete user guide
+  - Build instructions
+  - Troubleshooting
+
+✓ ELECTRON_SETUP.md
+  - Technical setup details
+  - Configuration options
+
+✓ .gitignore
+  - Excludes build artifacts and node_modules
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+NEXT STEPS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. INSTALL DEPENDENCIES:
+   Run in terminal: npm install
+
+2. TEST LOCALLY:
+   Run: npm start
+   (This launches the desktop app)
+
+3. BUILD FOR WINDOWS:
+   Run: npm run dist
+   (Creates installer in dist/ folder)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+KEY DIFFERENCES FROM WEB VERSION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✓ Runs as native Windows application
+✓ No browser = cleaner UI (no address bar)
+✓ System menu with native keyboard shortcuts
+✓ Drag & drop files natively
+✓ Direct API calls work (CORS not an issue)
+✓ localStorage persists across sessions
+✓ Can be packaged as .exe installer or portable
+✓ Offline-capable (no server needed for app shell)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+CUSTOMIZATION:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Edit package.json "build" section to:
+  • Add app icon (icon.png, icon.ico)
+  • Change installer behavior
+  • Set file associations (.c, .sol, etc)
+  • Customize start menu/shortcuts
+
+Edit main.js to:
+  • Add custom IPC handlers
+  • File system operations
+  • System tray integration
+  • Window positioning/persistence
+
+Edit index.html to:
+  • Add Electron-specific UI
+  • Connect to backend API
+  • Add custom menus
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Your original HTML is preserved and enhanced
+with Electron capabilities!

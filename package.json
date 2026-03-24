@@ -1,0 +1,65 @@
+{
+  "name": "trustinn-desktop",
+  "version": "1.0.0",
+  "description": "TrustInn - Code Analysis Platform (Desktop)",
+  "main": "main.js",
+  "homepage": "http://./",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --debug",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win --publish never",
+    "build-win-portable": "electron-builder --win portable",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "code-analysis",
+    "cbmc",
+    "verification"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "27.0.0",
+    "electron-builder": "24.6.4"
+  },
+  "build": {
+    "appId": "com.trustinn.desktop",
+    "productName": "TrustInn",
+    "files": [
+      "main.js",
+      "preload.js",
+      "k.html",
+      "image.png",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "assets"
+    },
+    "win": {
+      "icon": "image.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "type": "commonjs"
+}

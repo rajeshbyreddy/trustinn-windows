@@ -1,0 +1,2041 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrustInn — Code Analysis Platform</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0b0f;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #252a36;
+    --accent: #00e5a0;
+    --accent2: #7c6fff;
+    --accent3: #ff6b6b;
+    --text: #e8eaf0;
+    --text-muted: #6b7280;
+    --text-dim: #9ca3af;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'Space Mono', monospace; }
+
+  /* Grid bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .glow-accent { box-shadow: 0 0 30px rgba(0,229,160,0.15); }
+  .glow-purple { box-shadow: 0 0 30px rgba(124,111,255,0.15); }
+
+  /* Header */
+  header {
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10,11,15,0.92);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo {
+    font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem; color: var(--accent);
+    border: 1px solid rgba(0,229,160,0.3);
+    padding: 3px 10px; border-radius: 999px;
+    background: rgba(0,229,160,0.06);
+  }
+
+  /* Main layout */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: calc(100vh - 60px);
+    position: relative; z-index: 1;
+  }
+
+  /* Left panel */
+  .left-panel {
+    display: flex; flex-direction: column;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  /* Language tabs */
+  .lang-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 1.5rem;
+    gap: 0;
+  }
+  .lang-tab {
+    padding: 0.9rem 1.25rem;
+    font-size: 0.8rem; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    display: flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .lang-tab:hover { color: var(--text-dim); }
+  .lang-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .lang-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: 0.7;
+  }
+
+  /* Tool selector */
+  .tool-area {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex; flex-direction: column; gap: 0.75rem;
+  }
+  .section-label {
+    font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .tool-chips {
+    display: flex; flex-wrap: wrap; gap: 0.5rem;
+  }
+  .tool-chip {
+    padding: 5px 14px;
+    font-size: 0.75rem; font-weight: 700;
+    font-family: 'Space Mono', monospace;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tool-chip:hover {
+    border-color: rgba(0,229,160,0.4);
+    color: var(--accent);
+    background: rgba(0,229,160,0.06);
+  }
+  .tool-chip.active {
+    background: rgba(0,229,160,0.1);
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tool-chip.purple.active {
+    background: rgba(124,111,255,0.1);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* Upload zone */
+  .upload-zone-wrapper {
+    flex: 1;
+    display: flex; flex-direction: column;
+    padding: 1.25rem 1.5rem;
+    gap: 1rem;
+    overflow: hidden;
+  }
+  .upload-drop-area {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    background: var(--surface);
+    position: relative;
+    min-height: 140px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem;
+  }
+  .upload-drop-area:hover, .upload-drop-area.dragover {
+    border-color: var(--accent);
+    background: rgba(0,229,160,0.04);
+  }
+  .upload-icon {
+    width: 44px; height: 44px;
+    background: rgba(0,229,160,0.1);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem;
+  }
+  .upload-text { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+  .upload-sub { font-size: 0.75rem; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+  #file-input { display: none; }
+
+  .file-badge {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(0,229,160,0.08);
+    border: 1px solid rgba(0,229,160,0.25);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    font-size: 0.8rem; font-family: 'Space Mono', monospace;
+    color: var(--accent);
+  }
+  .file-badge-icon { font-size: 1rem; }
+  .file-remove {
+    margin-left: auto; cursor: pointer;
+    color: var(--text-muted); font-size: 0.75rem;
+    transition: color 0.2s;
+  }
+  .file-remove:hover { color: var(--accent3); }
+
+  /* Code editor area */
+  .code-editor-area {
+    flex: 1;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .code-textarea {
+    flex: 1;
+    background: rgba(10,11,15,0.8);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.6;
+    padding: 1rem;
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s;
+    min-height: 160px;
+  }
+  .code-textarea:focus { border-color: rgba(0,229,160,0.4); }
+  .code-textarea::placeholder { color: var(--text-muted); opacity: 0.5; }
+
+  /* Action buttons */
+  .action-bar {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border);
+    display: flex; gap: 0.75rem; align-items: center;
+    background: var(--surface);
+  }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 18px;
+    font-size: 0.78rem; font-weight: 700;
+    letter-spacing: 0.05em;
+    border-radius: 8px;
+    cursor: pointer; border: none;
+    font-family: 'Syne', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0a0b0f;
+  }
+  .btn-primary:hover { background: #00ffb3; transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,229,160,0.4); }
+  .btn-primary:disabled { opacity: 0.4; transform: none; cursor: not-allowed; box-shadow: none; }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { border-color: var(--accent2); color: var(--accent2); background: rgba(124,111,255,0.08); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-dim); }
+  .btn-danger {
+    background: rgba(255,107,107,0.1);
+    color: var(--accent3);
+    border: 1px solid rgba(255,107,107,0.3);
+  }
+  .btn-danger:hover { background: rgba(255,107,107,0.2); }
+
+  /* Params area */
+  .params-area {
+    padding: 0 1.5rem 1rem;
+    display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center;
+  }
+  .param-field {
+    display: flex; align-items: center; gap: 6px;
+  }
+  .param-label {
+    font-size: 0.7rem; font-family: 'Space Mono', monospace;
+    color: var(--text-muted); white-space: nowrap;
+  }
+  .param-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 6px;
+    width: 80px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .param-input:focus { border-color: rgba(0,229,160,0.4); }
+
+  /* Right panel */
+  .right-panel {
+    display: flex; flex-direction: column;
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .output-header {
+    padding: 0.9rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--surface);
+  }
+  .output-title {
+    font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--text-muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .status-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-muted);
+    transition: background 0.3s;
+  }
+  .status-dot.running { background: #fbbf24; animation: blink 1s infinite; }
+  .status-dot.success { background: var(--accent); }
+  .status-dot.error { background: var(--accent3); }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .output-meta {
+    display: flex; gap: 0.5rem; align-items: center;
+  }
+  .meta-chip {
+    font-size: 0.65rem; font-family: 'Space Mono', monospace;
+    color: var(--text-muted);
+    background: var(--surface2);
+    padding: 2px 8px; border-radius: 4px;
+    border: 1px solid var(--border);
+  }
+  .meta-chip.green { color: var(--accent); border-color: rgba(0,229,160,0.3); background: rgba(0,229,160,0.06); }
+  .meta-chip.red { color: var(--accent3); border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.06); }
+
+  .output-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.25rem 1.5rem;
+  }
+  .output-content::-webkit-scrollbar { width: 4px; }
+  .output-content::-webkit-scrollbar-track { background: transparent; }
+  .output-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .output-empty {
+    height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+    opacity: 0.4;
+  }
+  .output-empty-icon { font-size: 2.5rem; }
+  .output-empty-text { font-size: 0.85rem; font-family: 'Space Mono', monospace; color: var(--text-muted); }
+
+  .output-pre {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.75rem;
+    line-height: 1.7;
+    color: #b8ffd9;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .output-pre.error-text { color: #ffb3b3; }
+
+  /* Samples panel */
+  .samples-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;
+  }
+  .sample-card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .sample-card:hover {
+    border-color: rgba(0,229,160,0.4);
+    background: rgba(0,229,160,0.04);
+  }
+  .sample-name {
+    font-size: 0.75rem; font-family: 'Space Mono', monospace;
+    color: var(--accent); margin-bottom: 6px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .sample-preview {
+    font-size: 0.65rem; font-family: 'Space Mono', monospace;
+    color: var(--text-muted); line-height: 1.5;
+    overflow: hidden; text-overflow: ellipsis;
+    display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  }
+
+  /* Loading spinner */
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(0,229,160,0.2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Token input area */
+  .token-strip {
+    padding: 0.6rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.75rem;
+    background: rgba(124,111,255,0.04);
+  }
+  .token-label { font-size: 0.65rem; font-family: 'Space Mono', monospace; color: var(--text-muted); white-space: nowrap; }
+  .token-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    padding: 4px 10px; border-radius: 6px; outline: none;
+    transition: border-color 0.2s;
+  }
+  .token-input:focus { border-color: rgba(124,111,255,0.5); }
+  .token-ok {
+    font-size: 0.65rem; color: var(--accent);
+    font-family: 'Space Mono', monospace;
+    white-space: nowrap;
+  }
+
+  /* Right panel tabs */
+  .right-tabs {
+    display: flex; border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .right-tab {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .right-tab:hover { color: var(--text-dim); }
+  .right-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+  .tab-pane { display: none; height: 100%; }
+  .tab-pane.active { display: flex; flex-direction: column; height: 100%; }
+
+  .animate-in {
+    animation: fadeSlide 0.3s ease;
+  }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Tooltip for tool info */
+  .tool-info {
+    padding: 0.75rem 1rem;
+    background: rgba(124,111,255,0.06);
+    border: 1px solid rgba(124,111,255,0.2);
+    border-radius: 8px;
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    display: flex; gap: 0.5rem; align-items: flex-start;
+  }
+  .tool-info-icon { color: var(--accent2); flex-shrink: 0; }
+
+  .divider { height: 1px; background: var(--border); margin: 0 1.5rem; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN PAGE (Hidden initially, shown if not authenticated) -->
+<div id="login-page" style="display: flex; min-height: 100vh; position: fixed; inset: 0; background: linear-gradient(135deg, var(--bg) 0%, var(--surface2) 100%); z-index: 1000; flex-direction: column; align-items: center; justify-content: center;">
+  <div style="width: 100%; max-width: 420px; padding: 2rem; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 0 40px rgba(0,229,160,0.1);">
+    
+    <!-- Logo -->
+    <div style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; margin-bottom: 2rem;">
+      TrustInn
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" onsubmit="handleLogin(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+      <div>
+        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">Email or Username</label>
+        <input 
+          id="login-credential" 
+          type="text" 
+          placeholder="Enter your email or username"
+          required
+          style="width: 100%; padding: 0.75rem 1rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.85rem; outline: none; transition: all 0.2s;"
+          onfocus="this.style.borderColor = 'rgba(0,229,160,0.5)'"
+          onblur="this.style.borderColor = 'var(--border)'"
+        >
+      </div>
+
+      <div>
+        <label style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.5rem;">Password</label>
+        <input 
+          id="login-password" 
+          type="password" 
+          placeholder="Enter your password"
+          required
+          style="width: 100%; padding: 0.75rem 1rem; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Space Mono', monospace; font-size: 0.85rem; outline: none; transition: all 0.2s;"
+          onfocus="this.style.borderColor = 'rgba(0,229,160,0.5)'"
+          onblur="this.style.borderColor = 'var(--border)'"
+        >
+      </div>
+
+      <!-- Error Message -->
+      <div id="login-error" style="display: none; padding: 0.75rem; background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.3); border-radius: 6px; color: var(--accent3); font-size: 0.75rem; font-family: 'Space Mono', monospace;"></div>
+
+      <!-- Submit Button -->
+      <button 
+        type="submit" 
+        class="btn btn-primary" 
+        style="width: 100%; justify-content: center; margin-top: 1rem;"
+        id="login-submit"
+      >
+        <span>→</span> Sign In
+      </button>
+
+      <!-- Loading State -->
+      <div id="login-loading" style="display: none; text-align: center; color: var(--text-muted); font-size: 0.8rem; font-family: 'Space Mono', monospace;">
+        Verifying credentials...
+      </div>
+    </form>
+
+    <!-- Info Text -->
+    <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center; font-size: 0.7rem; color: var(--text-muted); font-family: 'Space Mono', monospace;">
+      Uses nitminer.com authentication  <br>
+      This code is developed by NIT Miner Technologies Pvt Ltd.
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP (Hidden until authenticated) -->
+<div id="app-container" style="display: none;">
+
+<header>
+  <div class="logo">TrustInn</div>
+  <div style="display:flex; gap:0.75rem; align-items:center; flex:1;">
+    <span class="header-badge mono" id="tool-badge">CBMC · C</span>
+    <div style="width:1px;height:20px;background:var(--border)"></div>
+    <span style="font-size:0.72rem;color:var(--text-muted);">Code Analysis Platform</span>
+  </div>
+  <div style="display:flex; gap:1rem; align-items:center;">
+    <div id="user-info" style="display:none; padding:0.5rem 1rem; background:rgba(124,111,255,0.1); border:1px solid rgba(124,111,255,0.3); border-radius:6px; font-size:0.72rem; color:var(--text-dim); font-family:'Space Mono', monospace; text-align:right;">
+      <div style="color:var(--accent2); font-weight:700; margin-bottom:2px;">Logged In</div>
+      <div id="user-email" style="font-size:0.65rem;">user@nitminer.com</div>
+      <div id="session-timer" style="font-size:0.65rem; color:var(--accent); margin-top:4px; font-weight:600;">Session: ∞</div>
+    </div>
+    <button class="btn btn-ghost" onclick="refreshPage()" style="padding:6px 12px;font-size:0.7rem;">
+      ⟳ Refresh
+    </button>
+    <button class="btn btn-ghost" onclick="logoutUser()" style="padding:6px 12px;font-size:0.7rem;">
+      ← Logout
+    </button>
+  </div>
+</header>
+
+<div class="main-layout">
+
+  <!-- LEFT PANEL: Upload + Config -->
+  <div class="left-panel">
+
+    <!-- Language Tabs -->
+    <div class="lang-tabs">
+      <div class="lang-tab active" onclick="switchLang('c', this)">
+        <span class="lang-dot"></span> C
+      </div>
+      <div class="lang-tab" onclick="switchLang('java', this)">
+        <span class="lang-dot"></span> Java
+      </div>
+      <div class="lang-tab" onclick="switchLang('python', this)">
+        <span class="lang-dot"></span> Python
+      </div>
+      <div class="lang-tab" onclick="switchLang('solidity', this)">
+        <span class="lang-dot"></span> Solidity
+      </div>
+    </div>
+
+    <!-- Tool Selector -->
+    <div class="tool-area">
+      <div class="section-label">Analysis Tool</div>
+      <div class="tool-chips" id="tool-chips"></div>
+      <div class="tool-info" id="tool-info">
+        <span class="tool-info-icon">◆</span>
+        <span id="tool-info-text">Select a tool to view its description.</span>
+      </div>
+    </div>
+
+    <!-- Upload Area -->
+    <div class="upload-zone-wrapper">
+      <div class="section-label">Source Code</div>
+
+      <!-- Drop area -->
+      <div class="upload-drop-area" id="drop-area" onclick="document.getElementById('file-input').click()"
+           ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+        <input type="file" id="file-input" accept=".c,.java,.py,.sol" onchange="onFileSelect(event)">
+        <div class="upload-icon">📂</div>
+        <div class="upload-text">Drop your file here or click to browse</div>
+        <div class="upload-sub" id="upload-sub">.c  .java  .py  .sol</div>
+      </div>
+
+      <!-- File badge -->
+      <div class="file-badge" id="file-badge" style="display:none;">
+        <span class="file-badge-icon">📄</span>
+        <span id="file-badge-name" style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <span id="file-badge-size" style="color:var(--text-muted);font-size:0.65rem;"></span>
+        <span class="file-remove" onclick="removeFile()">✕ Remove</span>
+      </div>
+
+      <!-- Code Editor -->
+      <div class="code-editor-area">
+        <div class="section-label" style="margin-bottom:0.5rem;">Or paste code directly</div>
+        <textarea class="code-textarea" id="code-input"
+          placeholder="// Paste your code here or upload a file above..."></textarea>
+      </div>
+    </div>
+
+    <!-- Params -->
+    <div class="params-area" id="params-area"></div>
+
+    <!-- Solidity Mode Selector -->
+    <div id="solidity-mode-area" style="display:none; padding: 0.75rem 1.5rem; background: rgba(124,111,255,0.06); border-top: 1px solid var(--border);">
+      <div style="font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">Verification Mode</div>
+      <div style="display: flex; gap: 0.5rem;">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.75rem; color: var(--text-dim);">
+          <input type="radio" name="solidity-mode" value="bmc" checked style="cursor: pointer;">
+          BMC (Bounded Model Checker)
+        </label>
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.75rem; color: var(--text-dim);">
+          <input type="radio" name="solidity-mode" value="chc" style="cursor: pointer;">
+          CHC (Constrained Horn Clauses)
+        </label>
+      </div>
+    </div>
+
+    <!-- Action bar -->
+    <div class="action-bar">
+      <button class="btn btn-primary" id="execute-btn" onclick="executeCode()">
+        <span>▶</span> Execute
+      </button>
+      <button class="btn btn-secondary" onclick="getSamples()">
+        <span>◈</span> Get Samples
+      </button>
+      <button class="btn btn-ghost" onclick="compileCode()">
+        <span>⚙</span> Compile
+      </button>
+      <button class="btn btn-danger" onclick="clearAll()" style="margin-left:auto;">
+        ✕ Clear
+      </button>
+    </div>
+
+  </div>
+
+  <!-- UPGRADE REQUIRED MODAL -->
+  <div id="upgrade-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center;">
+    <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:2rem; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+      <div style="font-size:1.5rem; margin-bottom:1rem;" id="modal-icon">🔒</div>
+      <h2 style="font-size:1.25rem; margin-bottom:1rem; font-weight:700;" id="modal-title">Free Trial Exceeded</h2>
+      <p style="color:var(--text-dim); margin-bottom:1.5rem; line-height:1.6;" id="modal-message">You've used up your free trial executions. Upgrade to Premium to continue using our tools.</p>
+      <div style="display:flex; gap:1rem;">
+        <button onclick="closeUpgradeModal()" style="flex:1; padding:0.75rem; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:6px; cursor:pointer; font-weight:700; font-family:'Syne',sans-serif; transition:all 0.3s; min-height:44px;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Cancel</button>
+        <button onclick="upgradeNow()" style="flex:1; padding:0.75rem; background:var(--accent); color:var(--bg); border:none; border-radius:6px; cursor:pointer; font-weight:700; font-family:'Syne',sans-serif; transition:all 0.3s; min-height:44px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Upgrade Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL: Output -->
+  <div class="right-panel">
+
+    <!-- Token strip -->
+    <div class="token-strip">
+      <span class="token-label">API TOKEN</span>
+      <input type="password" class="token-input" id="token-input"
+        placeholder="Paste your bearer token here..."
+        value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjUwN2YxZjc3YmNmODZjZDc5OTQzOTAxMSIsImVtYWlsIjoiZGV2dGVzdEB0cnVzdGlubi5uaXRtaW5lci5jb20iLCJuYW1lIjoiRGV2IFRlc3QgVXNlciIsInJvbGUiOiJ1c2VyIiwiaGFzUHJlbWl1bSI6dHJ1ZSwibm9PZlRyYWlscyI6OTk5LCJ0cmlhbEV4Y2VlZGVkIjpmYWxzZSwiaXNQcmVtaXVtIjp0cnVlLCJpc3N1ZWRBdCI6IjIwMjYtMDMtMjBUMDg6MzA6MzEuMjIzWiIsImlhdCI6MTc3Mzk5NTQzMSwiZXhwIjoxNzc0NjAwMjMxfQ.gxijOn9nPyXHVa6tNuKBRztahZRuuTw8bUbVsBE1XlQ">
+      <span class="token-ok">✓ Pre-filled</span>
+    </div>
+
+    <!-- Right tabs -->
+    <div class="right-tabs">
+      <div class="right-tab active" onclick="switchRightTab('output', this)">Output</div>
+      <div class="right-tab" onclick="switchRightTab('samples', this)">Samples</div>
+    </div>
+
+    <!-- Output Tab -->
+    <div class="tab-pane active" id="tab-output" style="overflow:hidden;">
+      <div class="output-header">
+        <div class="output-title">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-text">Ready</span>
+        </div>
+        <div class="output-meta" id="output-meta"></div>
+      </div>
+      <div class="output-content" id="output-content">
+        <div class="output-empty" id="output-empty">
+          <div class="output-empty-icon">⬡</div>
+          <div class="output-empty-text">No output yet — run your analysis</div>
+        </div>
+        <pre class="output-pre" id="output-pre" style="display:none;"></pre>
+      </div>
+      <!-- Download Section -->
+      <div id="download-section" style="display:none; padding: 1rem 1.5rem; border-top: 1px solid var(--border); background: rgba(0,229,160,0.04);">
+        <div style="font-size: 0.7rem; font-family: 'Space Mono', monospace; color: var(--text-muted); margin-bottom: 0.5rem;">📦 RESULTS</div>
+        <a id="download-link" href="#" target="_blank" class="btn btn-primary" style="width: 100%; text-align: center; text-decoration: none; display: inline-flex; justify-content: center;">
+          ⬇ Download ZIP
+        </a>
+        <div id="download-expire" style="font-size: 0.65rem; color: var(--text-muted); margin-top: 0.5rem; text-align: center; font-family: 'Space Mono', monospace;"></div>
+      </div>
+    </div>
+
+    <!-- Samples Tab -->
+    <div class="tab-pane" id="tab-samples" style="overflow:hidden;">
+      <div class="output-header">
+        <div class="output-title">
+          <span class="status-dot" id="samples-dot"></span>
+          <span id="samples-title">Sample Programs</span>
+        </div>
+        <button class="btn btn-ghost" style="padding:4px 10px;font-size:0.7rem;" onclick="getSamples()">↺ Refresh</button>
+      </div>
+      <div class="output-content" id="samples-content">
+        <div class="output-empty" id="samples-empty">
+          <div class="output-empty-icon">◈</div>
+          <div class="output-empty-text">Click "Get Samples" to load examples</div>
+        </div>
+        <div class="samples-grid" id="samples-grid" style="display:none;"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- UPGRADE REQUIRED MODAL -->
+<div id="upgrade-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9999; display:flex; align-items:center; justify-content:center;">
+  <div style="background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:2rem; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+    <div style="font-size:1.5rem; margin-bottom:1rem;" id="modal-icon">🔒</div>
+    <h2 style="font-size:1.25rem; margin-bottom:1rem; font-weight:700;" id="modal-title">Free Trial Exceeded</h2>
+    <p style="color:var(--text-dim); margin-bottom:1.5rem; line-height:1.6;" id="modal-message">You've used up your free trial executions. Upgrade to Premium to continue using our tools.</p>
+    <div style="display:flex; gap:1rem;">
+      <button onclick="closeUpgradeModal()" style="flex:1; padding:0.75rem; background:var(--surface); border:1px solid var(--border); color:var(--text); border-radius:6px; cursor:pointer; font-weight:700; font-family:'Syne',sans-serif; transition:all 0.3s; min-height:44px;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">Cancel</button>
+      <button onclick="upgradeNow()" style="flex:1; padding:0.75rem; background:var(--accent); color:var(--bg); border:none; border-radius:6px; cursor:pointer; font-weight:700; font-family:'Syne',sans-serif; transition:all 0.3s; min-height:44px;" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Upgrade Now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// API CONFIGURATION (DEV & PRODUCTION)
+// ============================================================================
+
+// Detect environment and set appropriate API endpoints
+function getAPIBaseUrl() {
+  // Use production server by default
+  // To test with local development server, add ?dev=true to demo.html URL
+  const params = new URLSearchParams(window.location.search);
+  
+  if (params.get('dev') === 'true') {
+    // Development mode: use local server on port 7075
+    const host = window.location.hostname;
+    return `http://${host}:7075`;
+  }
+  
+  // Production: Use production server
+  return 'https://www.nitminer.com';
+}
+
+const API_BASE_URL = getAPIBaseUrl();
+
+// Main API for external tools execution
+const BASE = `${API_BASE_URL}/api/external`;
+
+// Authentication endpoints
+const AUTH_ENDPOINT = `${API_BASE_URL}/api/auth/login`;
+const LOGOUT_ENDPOINT = `${API_BASE_URL}/api/auth/logout`;
+const VALIDATE_ENDPOINT = `${API_BASE_URL}/api/auth/check`;
+const SESSION_ENDPOINT = `${API_BASE_URL}/api/user/me`;
+
+let currentUser = null;
+let authToken = localStorage.getItem('trustinn_auth_token');
+let userProducts = null; // Store product subscription data
+
+const TOOLS = {
+  c: [
+    { id: 'CBMC', name: 'CBMC', desc: 'Bounded Model Checker for C. Checks array bounds, integer overflows, and null pointer dereferences.', params: [{name:'bound',label:'Bound',default:10,min:1,max:1000}], product: 'trustinn' },
+    { id: 'KLEE', name: 'KLEE', desc: 'Dynamic Symbolic Execution — generates test cases and explores all execution paths.', params: [], product: 'trustinn' },
+    { id: 'KLEEMA', name: 'KLEEMA', desc: 'Code Mutation tool for mutation testing and analysis of C programs.', params: [], product: 'trustinn' },
+    { id: 'TX', name: 'TracerX', desc: 'Efficient trace explorer for path-sensitive analysis.', params: [], product: 'trustinn' },
+    { id: 'gMCov', name: 'gMCov', desc: 'MC/DC coverage profiler — version + timebound configurable.', params: [{name:'version',label:'Version',default:4,min:1,max:10},{name:'timebound',label:'Timebound (s)',default:3600,min:60,max:36000}], product: 'trustinn' },
+    { id: 'gMutant', name: 'gMutant', desc: 'DSE-based mutation analysis for comprehensive fault detection.', params: [], product: 'trustinn' },
+  ],
+  java: [
+    { id: 'JBMC', name: 'JBMC', desc: 'Bounded Model Checker for Java bytecode. Verifies array bounds, null pointers, and exceptions.', params: [], product: 'trustinn' },
+  ],
+  python: [
+    { id: 'Python', name: 'Python Exec', desc: 'Python Script Execution and Analysis — runs and analyses Python programs.', params: [], product: 'trustinn' },
+  ],
+  solidity: [
+    { id: 'Solc', name: 'Solc', desc: 'Smart Contract Compiler and Analyzer — compiles and verifies Solidity contracts.', params: [], product: 'verisol' },
+  ],
+};
+
+const PLACEHOLDERS = {
+  c: `#include <stdio.h>\n\nint main() {\n    int x = 5;\n    if (x > 0) printf("positive\\n");\n    return 0;\n}`,
+  java: `public class HelloWorld {\n    public static void main(String[] args) {\n        System.out.println("Hello, World!");\n    }\n}`,
+  python: `def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n\nprint(factorial(10))`,
+  solidity: `// SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\n\ncontract SimpleStorage {\n    uint256 storedData;\n    function set(uint256 x) public { storedData = x; }\n    function get() public view returns (uint256) { return storedData; }\n}`,
+};
+
+let currentLang = 'c';
+let currentTool = 'CBMC';
+let uploadedFile = null;
+
+function getToken() {
+  return document.getElementById('token-input').value.trim();
+}
+
+function switchLang(lang, el) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderTools();
+  document.getElementById('code-input').placeholder = '// ' + PLACEHOLDERS[lang].split('\n')[0];
+  updateBadge();
+  
+  // Show/hide Solidity mode selector
+  const solidityModeArea = document.getElementById('solidity-mode-area');
+  if (lang === 'solidity') {
+    solidityModeArea.style.display = 'block';
+  } else {
+    solidityModeArea.style.display = 'none';
+  }
+}
+
+function renderTools() {
+  const tools = TOOLS[currentLang];
+  const container = document.getElementById('tool-chips');
+  container.innerHTML = '';
+  tools.forEach((t, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'tool-chip' + (t.id === currentTool || (i === 0 && !tools.find(x=>x.id===currentTool)) ? ' active' : '');
+    if (i === 0 && !tools.find(x=>x.id===currentTool)) currentTool = t.id;
+    chip.textContent = t.name;
+    chip.onclick = () => selectTool(t.id);
+    container.appendChild(chip);
+  });
+  // auto-select first if current not in list
+  if (!tools.find(t=>t.id===currentTool)) {
+    currentTool = tools[0].id;
+    renderTools(); return;
+  }
+  renderToolInfo();
+  renderParams();
+  updateBadge();
+}
+
+function selectTool(id) {
+  currentTool = id;
+  document.querySelectorAll('.tool-chip').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.tool-chip').forEach(c => {
+    if (c.textContent === TOOLS[currentLang].find(t=>t.id===id)?.name) c.classList.add('active');
+  });
+  renderToolInfo();
+  renderParams();
+  updateBadge();
+}
+
+function renderToolInfo() {
+  const tool = TOOLS[currentLang].find(t => t.id === currentTool);
+  if (tool) document.getElementById('tool-info-text').textContent = tool.desc;
+}
+
+function renderParams() {
+  const tool = TOOLS[currentLang].find(t => t.id === currentTool);
+  const area = document.getElementById('params-area');
+  area.innerHTML = '';
+  if (!tool || !tool.params.length) return;
+  tool.params.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'param-field';
+    div.innerHTML = `<span class="param-label">${p.label}:</span>
+      <input type="number" class="param-input" id="param-${p.name}" value="${p.default}" min="${p.min}" max="${p.max}" data-default="${p.default}">`;
+    area.appendChild(div);
+  });
+}
+
+function getParams() {
+  const tool = TOOLS[currentLang].find(t => t.id === currentTool);
+  if (!tool || !tool.params.length) return;
+  
+  const params = {};
+  tool.params.forEach(p => {
+    const el = document.getElementById('param-' + p.name);
+    if (el) {
+      let val = el.value;
+      
+      // Trim whitespace
+      if (typeof val === 'string') {
+        val = val.trim();
+      }
+      
+      // Validate: must be a valid positive integer
+      const numVal = Number(val);
+      if (Number.isInteger(numVal) && numVal > 0) {
+        params[p.name] = numVal;
+      } else {
+        // Reset to default if invalid
+        params[p.name] = p.default;
+        el.value = p.default;
+      }
+    }
+  });
+  
+  return Object.keys(params).length > 0 ? params : null;
+}
+
+function getSolidityMode() {
+  const selected = document.querySelector('input[name="solidity-mode"]:checked');
+  return selected ? selected.value : 'bmc';
+}
+
+function updateBadge() {
+  document.getElementById('tool-badge').textContent = `${currentTool} · ${currentLang.toUpperCase()}`;
+}
+
+function onDragOver(e) {
+  e.preventDefault();
+  document.getElementById('drop-area').classList.add('dragover');
+}
+function onDragLeave(e) {
+  document.getElementById('drop-area').classList.remove('dragover');
+}
+function onDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-area').classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+}
+function onFileSelect(e) {
+  const file = e.target.files[0];
+  if (file) handleFile(file);
+}
+
+function handleFile(file) {
+  uploadedFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('code-input').value = e.target.result;
+  };
+  reader.readAsText(file);
+
+  document.getElementById('file-badge').style.display = 'flex';
+  document.getElementById('file-badge-name').textContent = file.name;
+  document.getElementById('file-badge-size').textContent = formatSize(file.size);
+  document.getElementById('drop-area').style.display = 'none';
+}
+
+function removeFile() {
+  uploadedFile = null;
+  document.getElementById('file-input').value = '';
+  document.getElementById('file-badge').style.display = 'none';
+  document.getElementById('drop-area').style.display = 'flex';
+  document.getElementById('code-input').value = '';
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  return (bytes / 1024).toFixed(1) + ' KB';
+}
+
+function getCode() {
+  return document.getElementById('code-input').value.trim();
+}
+
+function getFileName() {
+  if (uploadedFile) return uploadedFile.name;
+  const exts = { c: 'program.c', java: 'Main.java', python: 'script.py', solidity: 'contract.sol' };
+  return exts[currentLang];
+}
+
+function setStatus(state, text) {
+  const dot = document.getElementById('status-dot');
+  dot.className = 'status-dot ' + state;
+  document.getElementById('status-text').textContent = text;
+}
+
+function showOutput(text, isError = false) {
+  document.getElementById('output-empty').style.display = 'none';
+  const pre = document.getElementById('output-pre');
+  pre.style.display = 'block';
+  pre.className = 'output-pre animate-in' + (isError ? ' error-text' : '');
+  pre.textContent = text;
+}
+
+function setMeta(time, tool, success) {
+  const meta = document.getElementById('output-meta');
+  meta.innerHTML = '';
+  if (time) {
+    const c = document.createElement('span');
+    c.className = 'meta-chip';
+    c.textContent = (time / 1000).toFixed(2) + 's';
+    meta.appendChild(c);
+  }
+  if (tool) {
+    const c = document.createElement('span');
+    c.className = 'meta-chip';
+    c.textContent = tool;
+    meta.appendChild(c);
+  }
+  const s = document.createElement('span');
+  s.className = 'meta-chip ' + (success ? 'green' : 'red');
+  s.textContent = success ? '✓ Success' : '✗ Error';
+  meta.appendChild(s);
+}
+
+async function executeCode() {
+  console.log('▶️  Execute button clicked');
+  
+  // Check if user can execute tools
+  const canExecute = canExecuteTool();
+  console.log('🔐 canExecuteTool returned:', canExecute);
+  
+  if (!canExecute) {
+    console.log('🚫 Showing upgrade modal');
+    showUpgradeModal('trial');
+    return;
+  }
+  
+  console.log('✅ Execution allowed, proceeding...');
+  
+  const code = getCode();
+  if (!code) { alert('Please enter or upload code first.'); return; }
+  
+  // Get token from input or stored session
+  let token = getToken();
+  if (!token && authToken) {
+    token = authToken;
+  }
+
+  const btn = document.getElementById('execute-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Running...';
+  setStatus('running', 'Executing...');
+  document.getElementById('output-meta').innerHTML = '';
+  document.getElementById('download-section').style.display = 'none';
+
+  try {
+    // Build request body as JSON (not FormData)
+    const body = {
+      code: code,
+      language: currentLang,
+      tool: currentTool,
+      fileName: getFileName(),
+    };
+
+    // Add tool parameters only if valid
+    const params = getParams();
+    if (params && Object.keys(params).length > 0) {
+      body.toolParameters = params;
+    }
+
+    // For Solidity, add the selected verification mode
+    if (currentLang === 'solidity') {
+      body.mode = getSolidityMode(); // Get the selected mode (bmc or chc)
+    }
+
+    console.log('📤 Sending to:', `${BASE}/execute`);
+    console.log('🔧 Tool:', currentTool, '| Language:', currentLang);
+    console.log('📋 Request body:', JSON.stringify(body, null, 2));
+
+    const res = await fetch(`${BASE}/execute`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    // Try to parse as JSON first
+    let data;
+    const contentType = res.headers.get('content-type');
+    
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        data = await res.json();
+      } catch (jsonErr) {
+        console.error('❌ Failed to parse JSON response:', jsonErr);
+        const text = await res.text();
+        data = {
+          success: false,
+          error: `Invalid JSON response: ${text.substring(0, 100)}`,
+          code: 'INVALID_RESPONSE'
+        };
+      }
+    } else {
+      // Handle non-JSON responses
+      const text = await res.text();
+      console.error('❌ Non-JSON response from server:', text);
+      data = {
+        success: false,
+        error: text || 'Invalid response from server',
+        code: 'INVALID_RESPONSE'
+      };
+    }
+
+    console.log('📥 Response:', data);
+
+    if (data.success) {
+      setStatus('success', 'Analysis Complete');
+      showOutput(data.output || '(No output returned)');
+      setMeta(data.executionTime, data.tool, true);
+      // Auto-download if results package is available
+      if (data.downloadUrl) {
+        // Generate filename if not provided by API
+        const fileName = data.downloadFileName || `results-${data.sessionId || 'download'}.zip`;
+        console.log('📦 Results Package:', fileName);
+        triggerAutoDownload(data.downloadUrl, fileName);
+      }
+    } else {
+      setStatus('error', data.code || 'Error');
+      showOutput(`Error [${data.code || 'UNKNOWN'}]: ${data.error || 'Execution failed'}`, true);
+      setMeta(null, currentTool, false);
+    }
+  } catch (err) {
+    setStatus('error', 'Network Error');
+    showOutput(`Network error: ${err.message}\n\nMake sure the API server is running at:\n${BASE}`, true);
+    setMeta(null, null, false);
+    console.error('❌ Execution error:', err);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<span>▶</span> Execute';
+}
+
+async function compileCode() {
+  const code = getCode();
+  if (!code) { alert('Please enter or upload code first.'); return; }
+
+  setStatus('running', 'Compiling...');
+  document.getElementById('output-empty').style.display = 'none';
+  document.getElementById('output-pre').style.display = 'none';
+  document.getElementById('download-section').style.display = 'none';
+  document.getElementById('output-meta').innerHTML = '';
+
+  try {
+    // Get token from input or stored session
+    let token = getToken();
+    if (!token && authToken) {
+      token = authToken;
+    }
+
+    const res = await fetch(`${BASE}/compile`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        code,
+        language: currentLang,
+        fileName: getFileName(),
+      }),
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      setStatus('success', 'Compilation Successful');
+      showOutput(data.output || '✅ Compiled OK');
+      setMeta(null, 'compile', true);
+    } else {
+      setStatus('error', 'Compilation Failed');
+      showOutput(`Compilation Error:\n${data.error || 'Unknown error'}`, true);
+      setMeta(null, 'compile', false);
+    }
+  } catch (err) {
+    setStatus('error', 'Network Error');
+    showOutput(`Network error: ${err.message}`, true);
+  }
+}
+
+async function getSamples() {
+  // Switch to samples tab
+  document.querySelectorAll('.right-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.right-tab')[1].classList.add('active');
+  switchRightTab('samples', document.querySelectorAll('.right-tab')[1]);
+
+  const dot = document.getElementById('samples-dot');
+  dot.className = 'status-dot running';
+  document.getElementById('samples-title').textContent = 'Loading samples...';
+
+  const sampleToolMap = {
+    c: (currentTool === 'gMCov' || currentTool === 'gMutant') ? currentTool : currentTool || 'CBMC',
+    java: 'JBMC',
+    python: 'Python',
+    solidity: 'Solc',
+  };
+  const toolParam = sampleToolMap[currentLang];
+
+  try {
+    const res = await fetch(`${BASE}/samples?tool=${toolParam}&language=${currentLang}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      }
+    });
+    const data = await res.json();
+
+    const grid = document.getElementById('samples-grid');
+    const empty = document.getElementById('samples-empty');
+
+    if (data.success && data.samples && Object.keys(data.samples).length) {
+      empty.style.display = 'none';
+      grid.style.display = 'grid';
+      grid.innerHTML = '';
+
+      Object.entries(data.samples).forEach(([name, code]) => {
+        const card = document.createElement('div');
+        card.className = 'sample-card animate-in';
+        card.innerHTML = `<div class="sample-name">${name}</div><div style="font-size:0.65rem;color:var(--text-muted);font-family:'Space Mono',monospace;margin-top:4px;">Click to load →</div>`;
+        card.onclick = () => loadSample(name, code);
+        grid.appendChild(card);
+      });
+
+      dot.className = 'status-dot success';
+      document.getElementById('samples-title').textContent = `${Object.keys(data.samples).length} Samples · ${data.totalSize || ''}`;
+    } else {
+      empty.style.display = 'flex';
+      grid.style.display = 'none';
+      dot.className = 'status-dot error';
+      document.getElementById('samples-title').textContent = 'No samples found';
+    }
+  } catch (err) {
+    dot.className = 'status-dot error';
+    document.getElementById('samples-title').textContent = 'Failed to load';
+    document.getElementById('samples-empty').style.display = 'flex';
+    document.getElementById('samples-grid').style.display = 'none';
+  }
+}
+
+function loadSample(name, code) {
+  removeFile();
+  document.getElementById('code-input').value = code;
+  document.getElementById('drop-area').style.display = 'flex';
+  // Switch back to output tab
+  document.querySelectorAll('.right-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.right-tab')[0].classList.add('active');
+  switchRightTab('output', document.querySelectorAll('.right-tab')[0]);
+  document.getElementById('output-empty').style.display = 'flex';
+  document.getElementById('output-pre').style.display = 'none';
+  setStatus('', `Loaded: ${name}`);
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function triggerAutoDownload(downloadUrl, downloadFileName) {
+  try {
+    // Convert relative URL to absolute using API_BASE_URL
+    let absoluteUrl = downloadUrl;
+    if (downloadUrl.startsWith('/')) {
+      // Relative URL - prepend API_BASE_URL to route through correct server
+      absoluteUrl = API_BASE_URL + downloadUrl;
+      console.log('[demo.html] 📍 Converting relative URL:', downloadUrl, '→', absoluteUrl);
+    }
+
+    const link = document.createElement('a');
+    link.href = absoluteUrl;
+    link.download = downloadFileName || 'results.zip';
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    
+    setTimeout(() => {
+      link.click();
+      document.body.removeChild(link);
+      console.log('[demo.html] ✅ Download triggered for:', downloadFileName, 'from:', absoluteUrl);
+    }, 300);
+  } catch (error) {
+    console.error('[demo.html] Error triggering download:', error);
+    alert('Download triggered! Check your Downloads folder.');
+  }
+}
+
+function showDownloadSection(downloadUrl, expiresIn) {
+  const section = document.getElementById('download-section');
+  const link = document.getElementById('download-link');
+  const expire = document.getElementById('download-expire');
+  
+  // Convert relative URL to absolute URL if needed
+  let absoluteUrl = downloadUrl;
+  if (downloadUrl.startsWith('/')) {
+    const baseUrl = window.location.protocol + '//' + window.location.hostname;
+    const port = window.location.port ? ':' + window.location.port : '';
+    absoluteUrl = baseUrl + port + downloadUrl;
+  }
+  
+  link.href = absoluteUrl;
+  expire.textContent = `⏱ Expires in ${expiresIn}`;
+  section.style.display = 'block';
+}
+
+function switchRightTab(id, el) {
+  document.querySelectorAll('.right-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('tab-' + id).classList.add('active');
+}
+
+function clearAll() {
+  document.getElementById('code-input').value = '';
+  removeFile();
+  document.getElementById('output-empty').style.display = 'flex';
+  document.getElementById('output-pre').style.display = 'none';
+  document.getElementById('output-meta').innerHTML = '';
+  setStatus('', 'Ready');
+}
+
+// Init
+renderTools();
+
+// ============================================================================
+// AUTHENTICATION FUNCTIONS
+// ============================================================================
+
+// Session timer management
+let sessionExpiryTime = null;
+let sessionTimerInterval = null;
+const SESSION_DURATION_MS = 60 * 60 * 1000; // 60 minutes
+
+/**
+ * Format milliseconds to MM:SS format
+ */
+function formatTime(ms) {
+  if (ms <= 0) return '0s';
+  const totalSeconds = Math.floor(ms / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  if (minutes > 0) {
+    return `${minutes}m ${seconds}s`;
+  }
+  return `${seconds}s`;
+}
+
+/**
+ * Start session countdown timer
+ */
+function startSessionTimer() {
+  // Set expiry time to 60 minutes from now
+  sessionExpiryTime = Date.now() + SESSION_DURATION_MS;
+  
+  // Clear any existing timer
+  if (sessionTimerInterval) {
+    clearInterval(sessionTimerInterval);
+  }
+  
+  // Update timer display immediately
+  updateSessionTimerDisplay();
+  
+  // Update every 1 second
+  sessionTimerInterval = setInterval(() => {
+    updateSessionTimerDisplay();
+  }, 1000);
+  
+  console.log('⏱ Session timer started - expires in 60 minutes');
+}
+
+/**
+ * Update the session timer display in header
+ */
+function updateSessionTimerDisplay() {
+  const timerElement = document.getElementById('session-timer');
+  if (!timerElement || !sessionExpiryTime) return;
+  
+  const remaining = sessionExpiryTime - Date.now();
+  
+  if (remaining <= 0) {
+    // Session expired - auto logout
+    timerElement.textContent = 'Session: Expired';
+    timerElement.style.color = '#ffb3b3'; // error red
+    clearInterval(sessionTimerInterval);
+    setTimeout(() => {
+      console.warn('⚠ Session expired');
+      logoutUser();
+    }, 2000);
+    return;
+  }
+  
+  // Warning colors as time depletes
+  let timerColor = '#00e5a0'; // green
+  if (remaining < 5 * 60 * 1000) {
+    timerColor = '#ff6b6b'; // red (less than 5 min)
+  } else if (remaining < 10 * 60 * 1000) {
+    timerColor = '#fbbf24'; // yellow (less than 10 min)
+  }
+  
+  timerElement.style.color = timerColor;
+  timerElement.textContent = `Session: ${formatTime(remaining)}`;
+}
+
+/**
+ * Stop session countdown timer
+ */
+function stopSessionTimer() {
+  if (sessionTimerInterval) {
+    clearInterval(sessionTimerInterval);
+    sessionTimerInterval = null;
+  }
+  sessionExpiryTime = null;
+  console.log('⏱ Session timer stopped');
+}
+
+// ============================================================================
+// TRIAL/SUBSCRIPTION MANAGEMENT
+// ============================================================================
+
+let toolExecutionCount = 0; // Track executions in current session
+
+/**
+ * Get the product for the current tool
+ */
+function getProductForCurrentTool() {
+  const tool = TOOLS[currentLang]?.find(t => t.id === currentTool);
+  return tool?.product || 'trustinn'; // Default to trustinn
+}
+
+/**
+ * Check if user can execute tools based on trial/subscription status
+ */
+function canExecuteTool() {
+  console.log('🔐 canExecuteTool() called');
+  console.log('  currentUser:', !!currentUser);
+  console.log('  userProducts:', !!userProducts);
+  
+  // If not logged in, allow execution (will fail with auth error from API)
+  if (!currentUser) {
+    console.log('✅ canExecuteTool: No user, allowing (will fail at API)');
+    return true;
+  }
+  
+  // If we have per-product data, use the new system
+  if (userProducts) {
+    const product = getProductForCurrentTool();
+    const productData = userProducts[product];
+    
+    console.log('📦 Using per-product system for:', product);
+    console.log('   Product data:', productData);
+    
+    if (!productData) {
+      console.log('❌ canExecuteTool: No data for product', product);
+      return false;
+    }
+    
+    // Check if trial is exceeded and not premium
+    if (productData.trialExceeded === true) {
+      console.log('❌ canExecuteTool: Trial exceeded for', product);
+      return false;
+    }
+    
+    // Check if user has premium for this product
+    if (productData.isPremium === true) {
+      // Check if premium has expired
+      if (productData.premiumExpiryDate) {
+        const expiry = new Date(productData.premiumExpiryDate);
+        if (expiry > new Date()) {
+          console.log('✅ canExecuteTool: Premium active for', product);
+          return true; // Premium is valid
+        } else {
+          console.log('⏰ canExecuteTool: Premium expired for', product);
+        }
+      } else {
+        console.log('✅ canExecuteTool: Premium (no expiry) for', product);
+        return true; // Premium with no expiry
+      }
+    }
+    
+    // Check if user has remaining trials
+    if (productData.trialCount && productData.trialCount > 0) {
+      console.log('✅ canExecuteTool: Trials available for', product, ':', productData.trialCount);
+      return true;
+    }
+    
+    console.log('❌ canExecuteTool: No premium, no trials for', product);
+    return false; // No premium, no trials remaining
+  }
+  
+  // FALLBACK: If product data not available, check old global premium flag (backward compatibility)
+  console.log('⚠️  Fallback: Using legacy premium check');
+  
+  // Check if user has global premium
+  if (currentUser.isPremium === true) {
+    console.log('🔍 currentUser.isPremium:', currentUser.isPremium);
+    console.log('🔍 currentUser.subscriptionExpiry:', currentUser.subscriptionExpiry);
+    
+    // Check if premium has expired
+    if (currentUser.subscriptionExpiry) {
+      const expiry = new Date(currentUser.subscriptionExpiry);
+      const now = new Date();
+      console.log('📅 Expiry date:', expiry.toISOString());
+      console.log('📅 Current date:', now.toISOString());
+      console.log('📅 Comparison: expiry > now?', expiry > now);
+      
+      if (expiry > now) {
+        console.log('✅ canExecuteTool: Premium still valid (legacy)');
+        return true; // Premium is still valid
+      } else {
+        console.log('❌ canExecuteTool: Premium expired (legacy)');
+      }
+    } else {
+      console.log('✅ canExecuteTool: Premium with no expiry (legacy)');
+      return true; // Premium with no expiry
+    }
+  }
+  
+  // Check if user has remaining old-style trial count
+  if (currentUser.trialCount && currentUser.trialCount > 0) {
+    console.log('✅ canExecuteTool: Legacy trials available:', currentUser.trialCount);
+    return true;
+  }
+  
+  console.log('❌ canExecuteTool: DENIED - No premium, no trials');
+  return false; // No premium, no trials remaining
+}
+
+/**
+ * Show upgrade required modal
+ */
+function showUpgradeModal(reason = 'trial') {
+  const modal = document.getElementById('upgrade-modal');
+  const title = document.getElementById('modal-title');
+  const message = document.getElementById('modal-message');
+  const icon = document.getElementById('modal-icon');
+  
+  const product = getProductForCurrentTool();
+  const productName = product.charAt(0).toUpperCase() + product.slice(1); // Capitalize product name
+  
+  console.log('📢 showUpgradeModal called');
+  console.log('   Reason:', reason);
+  console.log('   Product:', product);
+  
+  if (reason === 'trial') {
+    icon.textContent = '⏱';
+    title.textContent = `Free Trial Expired - ${productName}`;
+    message.textContent = `You've used up your free trial executions for ${productName}. Upgrade to Premium to continue using our analysis tools and unlock advanced features.`;
+  } else if (reason === 'premium') {
+    icon.textContent = '⭐';
+    title.textContent = `Premium Feature - ${productName}`;
+    message.textContent = `This feature requires a Premium subscription for ${productName}. Upgrade now to access unlimited tool executions and priority support.`;
+  }
+  
+  console.log('📢 Modal displayed');
+  modal.style.display = 'flex';
+}
+
+/**
+ * Close upgrade modal
+ */
+function closeUpgradeModal() {
+  document.getElementById('upgrade-modal').style.display = 'none';
+}
+
+/**
+ * Redirect to upgrade page
+ */
+function upgradeNow() {
+  // Redirect to pricing or upgrade page
+  const baseURL = getAPIBaseUrl();
+  const upgradeURL = baseURL.replace('/api', '') + '/pricing';
+  window.open(upgradeURL, '_blank');
+  closeUpgradeModal();
+}
+
+// Close modal on outside click
+document.addEventListener('click', function(event) {
+  const modal = document.getElementById('upgrade-modal');
+  if (event.target === modal) {
+    closeUpgradeModal();
+  }
+});
+
+/**
+ * Check if user has an active session with nitminer (via CORS)
+ */
+async function validateSession() {
+  try {
+    console.log('🔍 Validating session...');
+    console.log('   authToken:', authToken ? '***' + authToken.slice(-20) : 'null');
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    // Build headers with Authorization token
+    const headers = {
+      'Content-Type': 'application/json',
+    };
+    
+    // If we have a stored token, send it in Authorization header
+    if (authToken) {
+      headers['Authorization'] = `Bearer ${authToken}`;
+      console.log('   Authorization header: Bearer ***');
+    }
+    
+    const response = await fetch(VALIDATE_ENDPOINT, {
+      method: 'GET',
+      credentials: 'include',
+      headers: headers,
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    console.log('   Response status:', response.status);
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log('✅ Session validated successfully');
+      return { authenticated: data.authenticated || false, user: data.user, token: authToken };
+    } else {
+      console.log('❌ Session validation failed with status', response.status);
+      console.log('   Response:', await response.text());
+      localStorage.removeItem('trustinn_auth_token');
+      authToken = null;
+      return { authenticated: false };
+    }
+  } catch (error) {
+    console.error('❌ Session validation error:', error);
+    return { authenticated: false };
+  }
+}
+
+/**
+ * Handle login form submission
+ */
+async function handleLogin(event) {
+  event.preventDefault();
+
+  const credential = document.getElementById('login-credential').value.trim();
+  const password = document.getElementById('login-password').value;
+  const errorDiv = document.getElementById('login-error');
+  const submitBtn = document.getElementById('login-submit');
+  const loadingDiv = document.getElementById('login-loading');
+  const form = document.getElementById('login-form');
+
+  // Validate inputs
+  if (!credential || !password) {
+    errorDiv.innerHTML = 'Please enter both email/username and password';
+    errorDiv.style.display = 'block';
+    return;
+  }
+
+  // Reset error
+  errorDiv.style.display = 'none';
+  errorDiv.innerHTML = '';
+
+  // Show loading state
+  loadingDiv.style.display = 'block';
+  submitBtn.disabled = true;
+
+  try {
+    console.log('🔐 Login attempt');
+    console.log('   Endpoint:', AUTH_ENDPOINT);
+    console.log('   Credential (raw):', credential);
+    console.log('   Credential (trimmed):', credential.trim());
+    console.log('   Password length:', password.length);
+    console.log('   Has trailing spaces in password:', password !== password.trim());
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout for login
+    
+    // Ensure credentials are trimmed
+    const cleanedCredential = credential.trim();
+    const cleanedPassword = password.trim(); // Also trim password
+    
+    const requestBody = {
+      email: cleanedCredential,
+      username: cleanedCredential,
+      password: cleanedPassword,
+      rememberMe: true
+    };
+    
+    console.log('📤 Sending request body:', JSON.stringify({
+      email: cleanedCredential,
+      username: cleanedCredential,
+      password: '***' + cleanedPassword.slice(-3),
+      rememberMe: true
+    }));
+    
+    const response = await fetch(AUTH_ENDPOINT, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(requestBody),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+    
+    console.log('📥 Response status:', response.status);
+    console.log('📥 Response headers:', {
+      'content-type': response.headers.get('content-type'),
+      'content-length': response.headers.get('content-length'),
+    });
+    
+    let data;
+    try {
+      data = await response.json();
+      console.log('📥 Response body:', JSON.stringify(data, null, 2));
+    } catch (e) {
+      console.error('❌ Failed to parse response as JSON:', e);
+      const text = await response.text();
+      console.log('📥 Raw response:', text.substring(0, 200));
+      throw new Error('Invalid response from server: ' + text.substring(0, 100));
+    }
+
+    if (response.ok && (data.authenticated || data.success)) {
+      console.log('✅ Login successful!');
+      // Store auth token
+      authToken = data.token || 'authenticated';
+      localStorage.setItem('trustinn_auth_token', authToken);
+      currentUser = data.user;
+      
+      console.log('👤 User logged in:', {
+        email: currentUser.email,
+        isPremium: currentUser.isPremium,
+        subscriptionExpiry: currentUser.subscriptionExpiry,
+        trialCount: currentUser.trialCount,
+      });
+      
+      // Store product subscription data - IMMEDIATELY construct if not in response
+      if (data.user && data.user.products) {
+        userProducts = data.user.products;
+        console.log('✅ Product subscriptions from API:', userProducts);
+      } else {
+        // CRITICAL: Construct product data IMMEDIATELY from legacy fields
+        console.log('⚠️  No product subscriptions in API response, constructing from legacy data...');
+        const hasPremium = currentUser.isPremium === true;
+        const premiumExpiry = currentUser.subscriptionExpiry ? new Date(currentUser.subscriptionExpiry) : null;
+        const isExpired = premiumExpiry && premiumExpiry < new Date();
+        
+        console.log('🔍 Premium check:', {
+          hasPremium,
+          premiumExpiry,
+          isExpired,
+          currentDate: new Date().toISOString(),
+          isValidPremium: hasPremium && !isExpired,
+        });
+        
+        userProducts = {
+          trustinn: {
+            plan: hasPremium ? 'pro' : 'free',
+            isPremium: hasPremium && !isExpired,
+            premiumExpiryDate: premiumExpiry,
+            trialCount: currentUser.trialCount || 0,
+            usedTrialCount: 0,
+            trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+          },
+          verisol: {
+            plan: hasPremium ? 'pro' : 'free',
+            isPremium: hasPremium && !isExpired,
+            premiumExpiryDate: premiumExpiry,
+            trialCount: currentUser.trialCount || 0,
+            usedTrialCount: 0,
+            trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+          },
+          verirust: {
+            plan: hasPremium ? 'pro' : 'free',
+            isPremium: hasPremium && !isExpired,
+            premiumExpiryDate: premiumExpiry,
+            trialCount: currentUser.trialCount || 0,
+            usedTrialCount: 0,
+            trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+          },
+        };
+        console.log('✅ Product data constructed:', userProducts);
+      }
+
+      // Hide loading and show success briefly
+      loadingDiv.innerHTML = '✓ Login successful, loading interface...';
+      
+      // Transition to app interface
+      setTimeout(() => {
+        showToolsInterface();
+      }, 500);
+    } else {
+      console.log('❌ Login failed with status:', response.status);
+      console.log('📋 Full error response:', data);
+      
+      // Show detailed error info
+      if (data.error) {
+        const errorMsg = data.error;
+        // Check for common issues
+        let suggestion = '';
+        if (errorMsg.includes('Invalid') || errorMsg.includes('invalid')) {
+          suggestion = '<br><small>💡 Double-check your email/username and password. Make sure there are no extra spaces.</small>';
+        } else if (errorMsg.includes('deactivated')) {
+          suggestion = '<br><small>⚠️  Your account has been deactivated. Please contact support.</small>';
+        }
+        throw new Error(errorMsg + suggestion);
+      } else if (data.message) {
+        throw new Error(data.message);
+      } else if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${data.code || JSON.stringify(data)}`);
+      } else {
+        throw new Error('Authentication failed: ' + JSON.stringify(data));
+      }
+    }
+  } catch (error) {
+    console.error('❌ Login error:', error);
+    console.error('   Error name:', error.name);
+    console.error('   Error message:', error.message);
+    
+    // Show error message
+    if (error.name === 'AbortError') {
+      errorDiv.innerHTML = 'Login request timed out (>30s). Server may be slow. Please try again or check if server is running at ' + AUTH_ENDPOINT;
+    } else if (error.message.includes('Failed to fetch')) {
+      errorDiv.innerHTML = 'Network error: Cannot reach login server at ' + AUTH_ENDPOINT + '<br><small>(Check CORS settings and server status)</small>';
+    } else {
+      errorDiv.innerHTML = '❌ ' + (error.message || 'Login failed. Please check your credentials and try again.');
+    }
+    errorDiv.style.display = 'block';
+
+    // Reset form state
+    loadingDiv.style.display = 'none';
+    submitBtn.disabled = false;
+  }
+}
+
+/**
+ * Show tools interface (hide login page)
+ */
+function showToolsInterface() {
+  const loginPage = document.getElementById('login-page');
+  const appContainer = document.getElementById('app-container');
+
+  loginPage.style.display = 'none';
+  appContainer.style.display = 'block';
+
+  // Show user info in header and start session timer
+  if (currentUser) {
+    const userInfoDiv = document.getElementById('user-info');
+    const userEmailDiv = document.getElementById('user-email');
+    const email = currentUser.email || currentUser.username || 'User';
+    userEmailDiv.textContent = email;
+    userInfoDiv.style.display = 'block';
+    
+    // Ensure product data is available
+    if (!userProducts && currentUser.products) {
+      userProducts = currentUser.products;
+      console.log('📦 Product subscriptions from API:', userProducts);
+    } else if (!userProducts) {
+      // Fallback: construct product data from old global premium flags
+      console.log('⚠️  Old premium format detected, constructing product data...');
+      const hasPremium = currentUser.isPremium === true;
+      const premiumExpiry = currentUser.subscriptionExpiry ? new Date(currentUser.subscriptionExpiry) : null;
+      const isExpired = premiumExpiry && premiumExpiry < new Date();
+      
+      userProducts = {
+        trustinn: {
+          plan: hasPremium ? 'pro' : 'free',
+          isPremium: hasPremium && !isExpired,
+          premiumExpiryDate: premiumExpiry,
+          trialCount: currentUser.trialCount || 0,
+          usedTrialCount: 0,
+          trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+        },
+        verisol: {
+          plan: hasPremium ? 'pro' : 'free',
+          isPremium: hasPremium && !isExpired,
+          premiumExpiryDate: premiumExpiry,
+          trialCount: currentUser.trialCount || 0,
+          usedTrialCount: 0,
+          trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+        },
+        verirust: {
+          plan: hasPremium ? 'pro' : 'free',
+          isPremium: hasPremium && !isExpired,
+          premiumExpiryDate: premiumExpiry,
+          trialCount: currentUser.trialCount || 0,
+          usedTrialCount: 0,
+          trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+        },
+      };
+      console.log('✅ Product data constructed:', userProducts);
+    }
+    
+    // Start countdown timer
+    startSessionTimer();
+    
+    console.log('✓ Logged in as:', email);
+    console.log('📊 User subscription:', userProducts);
+  }
+}
+
+/**
+ * Show login form (hide tools interface)
+ */
+function showLoginForm() {
+  const loginPage = document.getElementById('login-page');
+  const appContainer = document.getElementById('app-container');
+
+  loginPage.style.display = 'flex';
+  appContainer.style.display = 'none';
+
+  // Hide user info and stop timer
+  const userInfoDiv = document.getElementById('user-info');
+  userInfoDiv.style.display = 'none';
+  stopSessionTimer();
+  
+  // Clear user data
+  userProducts = null;
+
+  // Clear previous inputs
+  document.getElementById('login-credential').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-error').style.display = 'none';
+  document.getElementById('login-loading').style.display = 'none';
+  document.getElementById('login-submit').disabled = false;
+}
+
+/**
+ * Logout user
+ */
+function logoutUser() {
+  // Stop session timer
+  stopSessionTimer();
+  
+  // Call logout endpoint
+  fetch(LOGOUT_ENDPOINT, {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).catch(err => console.log('Logout endpoint call completed'));
+
+  // Clear local data
+  localStorage.removeItem('trustinn_auth_token');
+  authToken = null;
+  currentUser = null;
+  userProducts = null;
+  showLoginForm();
+  console.log('✓ Logged out successfully');
+}
+
+/**
+ * Refresh page to reload session data from server
+ */
+function refreshPage() {
+  console.log('🔄 Refreshing page to reload session data...');
+  location.reload();
+}
+
+/**
+ * Initialize page - check session on load
+ */
+async function initializePage() {
+  console.log('🔍 Checking session on page load...');
+
+  // First check if we have a stored token
+  if (authToken) {
+    console.log('✓ Found stored auth token, validating...');
+    // Even if token exists, we need to fetch user data
+    const session = await validateSession();
+    
+    if (session.authenticated && session.user) {
+      console.log('✅ Token still valid, loading user data');
+      currentUser = session.user;
+      
+      // Load product data immediately
+      if (currentUser.products) {
+        userProducts = currentUser.products;
+        console.log('📦 Product data from session:', userProducts);
+      } else {
+        // Fallback: construct from legacy fields
+        console.log('⚠️  Constructing product data from legacy fields');
+        const hasPremium = currentUser.isPremium === true;
+        const premiumExpiry = currentUser.subscriptionExpiry ? new Date(currentUser.subscriptionExpiry) : null;
+        const isExpired = premiumExpiry && premiumExpiry < new Date();
+        
+        userProducts = {
+          trustinn: {
+            plan: hasPremium ? 'pro' : 'free',
+            isPremium: hasPremium && !isExpired,
+            premiumExpiryDate: premiumExpiry,
+            trialCount: currentUser.trialCount || 0,
+            usedTrialCount: 0,
+            trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+          },
+          verisol: {
+            plan: hasPremium ? 'pro' : 'free',
+            isPremium: hasPremium && !isExpired,
+            premiumExpiryDate: premiumExpiry,
+            trialCount: currentUser.trialCount || 0,
+            usedTrialCount: 0,
+            trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+          },
+          verirust: {
+            plan: hasPremium ? 'pro' : 'free',
+            isPremium: hasPremium && !isExpired,
+            premiumExpiryDate: premiumExpiry,
+            trialCount: currentUser.trialCount || 0,
+            usedTrialCount: 0,
+            trialExceeded: (currentUser.trialCount || 0) <= 0 && !hasPremium,
+          },
+        };
+      }
+      
+      showToolsInterface();
+    } else {
+      console.log('❌ Token invalid or expired, showing login');
+      authToken = null;
+      currentUser = null;
+      userProducts = null;
+      localStorage.removeItem('trustinn_auth_token');
+      showLoginForm();
+    }
+    return;
+  }
+
+  console.log('ℹ No stored token, showing login');
+  showLoginForm();
+}
+
+// Initialize on page load
+window.addEventListener('DOMContentLoaded', initializePage);
+</script>
+
+<!-- Close app container -->
+</div>
+
+</body>
+</html>
