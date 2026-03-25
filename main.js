@@ -1,15 +1,15 @@
 const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
 const { autoUpdater } = require('electron-updater');
+const log = require('electron-log');
 
 // Fix for macOS certificate parsing error
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 let mainWindow;
 
-// Auto-update configuration
-autoUpdater.logger = require('electron-log');
-autoUpdater.checkForUpdatesAndNotify();
+// Auto-update configuration (will be initialized after app is ready)
+autoUpdater.logger = log;
 
 function createWindow() {
   const iconPath = process.platform === 'win32' ? path.join(__dirname, 'image.ico') : path.join(__dirname, 'image.png');
@@ -40,7 +40,11 @@ function createWindow() {
   });
 }
 
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+  // Check for updates after app is ready
+  autoUpdater.checkForUpdatesAndNotify();
+});
 
 app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') app.quit();
