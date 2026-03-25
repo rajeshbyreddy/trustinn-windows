@@ -1,10 +1,15 @@
-const { app, BrowserWindow, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
 const path = require('path');
+const { autoUpdater } = require('electron-updater');
 
 // Fix for macOS certificate parsing error
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
 let mainWindow;
+
+// Auto-update configuration
+autoUpdater.logger = require('electron-log');
+autoUpdater.checkForUpdatesAndNotify();
 
 function createWindow() {
   const iconPath = process.platform === 'win32' ? path.join(__dirname, 'image.ico') : path.join(__dirname, 'image.png');
@@ -45,9 +50,50 @@ app.on('activate', function () {
   if (mainWindow === null) createWindow();
 });
 
-// Handle IPC for file operations if needed
+// Auto-update event handlers
+autoUpdater.on('update-available', (info) => {
+  console.log('Update available:', info.version);
+  if (mainWindow) {
+    dialog.showMessageBox(mainWindow, {
+      type: 'info',
+      title: 'Update Available',
+      message: `A new version (${info.version}) is available!`,
+      detail: `Current version: ${app.getVersion()}\n\nWould you like to download and install the update?`,
+      buttons: ['Update Now', 'Later'],
+    }).then((result) => {
+      if (result.response === 0) {
+        autoUpdater.downloadUpdate();
+      }
+    });
+  }
+});
+
+autoUpdater.on('update-downloaded', () => {
+  console.log('Update downloaded');
+  dialog.showMessageBox(mainWindow, {
+    type: 'info',
+    title: 'Update Ready',
+    message: 'Update downloaded and ready to install',
+    detail: 'The application will restart to complete the update installation.',
+    buttons: ['Restart Now', 'Later'],
+  }).then((result) => {
+    if (result.response === 0) {
+      autoUpdater.quitAndInstall();
+    }
+  });
+});
+
+autoUpdater.on('error', (error) => {
+  console.error('Auto-update error:', error);
+});
+
+// Handle IPC for file operations and update checks
 ipcMain.handle('get-app-path', () => {
   return app.getAppPath();
+});
+
+ipcMain.handle('check-for-updates', () => {
+  return autoUpdater.checkForUpdates();
 });
 
 // Create application menu
@@ -93,9 +139,21 @@ const template = [
     label: 'Help',
     submenu: [
       {
+        label: 'Check for Updates',
+        click: () => {
+          autoUpdater.checkForUpdatesAndNotify();
+        },
+      },
+      { type: 'separator' },
+      {
         label: 'About TrustInn',
         click: () => {
-          // You can create an about dialog here
+          dialog.showMessageBox(mainWindow, {
+            type: 'info',
+            title: 'About TrustInn',
+            message: 'TrustInn - Code Analysis Platform',
+            detail: `Version: ${app.getVersion()}\\n\\nA desktop application for code analysis and verification using CBMC.`,
+          });
         },
       },
     ],

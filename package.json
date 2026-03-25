@@ -1,6 +1,6 @@
 {
   "name": "trustinn-desktop",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "TrustInn - Code Analysis Platform (Desktop)",
   "main": "main.js",
   "homepage": "http://./",
@@ -22,7 +22,8 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "27.0.0",
-    "electron-builder": "24.6.4"
+    "electron-builder": "24.6.4",
+    "electron-updater": "6.1.7"
   },
   "build": {
     "appId": "com.trustinn.desktop",
@@ -58,8 +59,10 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
+      "createStartMenuShortcut": true,
+      "displayLanguageSelector": true
+    },
+    "artifactName": "${productName}-${version}.${ext}"
   },
   "type": "commonjs"
 }
