@@ -15,9 +15,9 @@
   --accent: #2d5a3d;
   --accent2: #4a3f8f;
   --accent3: #c41e3a;
-  --text: #1a1a1a;
-  --text-muted: #888888;
-  --text-dim: #666666;
+  --text: #000000;
+  --text-muted: #000000;
+  --text-dim: #000000;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body { height: 100%; overflow: hidden; }
@@ -58,7 +58,7 @@ body::before {
   height: 56px; width: auto; object-fit: contain; filter: drop-shadow(0 0 8px rgba(45,90,61,0.2));
 }
 .login-logo-text {
-  font-size: 1.5rem; font-weight: 800; color: var(--text); font-family: 'Cormorant Garamond', serif;
+  font-size: 1.5rem; font-weight: 800; color: #000000; font-family: 'Cormorant Garamond', serif;
 }
 .login-sub { font-size: 0.72rem; color: var(--text-muted); font-family: 'Alegreya', serif; text-align: center; margin-bottom: 2rem; }
 .login-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 0.5rem; font-weight: 700; font-family: 'Crimon Text', serif; }
@@ -290,7 +290,7 @@ header {
 
 .term-empty { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.75rem; opacity: 0.35; }
 .term-empty-icon { font-size: 2rem; }
-.term-empty-text { font-size: 0.75rem; color: var(--text-muted); }
+.term-empty-text { font-size: 0.75rem; color: #000000; }
 
 .term-line { display: flex; gap: 10px; padding: 1px 5px; border-radius: 3px; margin-bottom: 1px; }
 .term-line:hover { background: rgba(0,0,0,0.02); }
@@ -298,7 +298,7 @@ header {
 .term-text { word-break: break-word; white-space: pre-wrap; }
 .term-text.success { color: #2d5a3d; } .term-text.error { color: #c41e3a; }
 .term-text.warn { color: #b8860b; } .term-text.info { color: #4a3f8f; }
-.term-text.default { color: #1a1a1a; }
+.term-text.default { color: #000000; }
 
 .status-bar {
   display: flex; align-items: center; gap: 1rem; padding: 0.55rem 1.25rem;
