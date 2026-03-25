@@ -22,7 +22,9 @@
   "license": "MIT",
   "devDependencies": {
     "electron": "27.0.0",
-    "electron-builder": "24.6.4",
+    "electron-builder": "24.6.4"
+  },
+  "dependencies": {
     "electron-updater": "6.1.7",
     "electron-log": "5.1.7"
   },
@@ -70,8 +72,5 @@
     },
     "artifactName": "${productName}-${version}.${ext}"
   },
-  "type": "commonjs",
-  "dependencies": {
-    "electron-log": "^5.4.3"
-  }
+  "type": "commonjs"
 }
