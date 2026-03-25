@@ -58,9 +58,16 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
+      "allowMultipleInstallations": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "displayLanguageSelector": true
+      "createUninstaller": true,
+      "displayLanguageSelector": false,
+      "installerLanguages": ["en_US"],
+      "shortcutName": "TrustInn",
+      "removeAppDataOnUninstall": true,
+      "installerIcon": "image.ico",
+      "uninstallerIcon": "image.ico"
     },
     "artifactName": "${productName}-${version}.${ext}"
   },
