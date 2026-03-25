@@ -1,0 +1,27 @@
+## Release 1.2.0 - Optimized Smooth Windows Installer
+
+### ⚡ New Installation Experience
+- One-folder selection only (no extra prompts)
+- No language selection dialog
+- Automatic shortcuts creation
+- Silent background installation
+- Auto-update checking enabled by default
+
+### Installation Steps
+1. Download TrustInn-1.2.0.exe
+2. Run the installer
+3. Select installation folder
+4. Click Install and wait (30-60 seconds)
+5. Done! App is installed with shortcuts
+
+### Features
+- Professional Windows NSIS Installer
+- Auto-update notifications
+- Desktop and Start Menu shortcuts
+- System uninstall support
+- Registry detection for reinstalls
+
+### Requirements
+- Windows 10 or later (x64)
+- 2 GB RAM minimum
+- 100 MB disk space
