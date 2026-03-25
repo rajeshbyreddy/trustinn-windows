@@ -1,6 +1,6 @@
 {
   "name": "trustinn-desktop",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "TrustInn - Code Analysis Platform (Desktop)",
   "main": "main.js",
   "homepage": "http://./",
@@ -59,16 +59,12 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "allowMultipleInstallations": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "createUninstaller": true,
       "displayLanguageSelector": false,
-      "installerLanguages": [
-        "en_US"
-      ],
+      "installerLanguages": ["en_US"],
       "shortcutName": "TrustInn",
-      "removeAppDataOnUninstall": true,
+      "deleteAppDataOnUninstall": true,
       "installerIcon": "image.ico",
       "uninstallerIcon": "image.ico"
     },
